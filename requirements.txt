@@ -1,0 +1,6 @@
+flask>=3.0.0
+qdrant-client>=1.8.0
+sentence-transformers>=2.2.0
+torch
+python-docx>=1.0.0
+requests

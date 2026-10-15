@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce DBMS with Qdrant Vector Search</title>
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">VectorStore DBMS</h1>
+          <span class="brand-subtitle">SQLite Relational Engine + Qdrant Vector Search</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Live Qdrant Status Badge -->
+        <div id="qdrant-status-badge" class="status-badge status-loading">
+          <span class="status-dot"></span>
+          <span id="qdrant-status-text">Checking Qdrant...</span>
+        </div>
+
+        <button id="btn-open-add-modal" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Product
+        </button>
+
+        <button id="btn-toggle-stats" class="btn btn-outline" title="View Database Architecture Info">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          System Info
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Search Hero & Control Panel -->
+    <section class="search-hero">
+      <div class="search-card">
+        
+        <!-- Search Mode Switcher Tabs -->
+        <div class="search-mode-tabs">
+          <button id="tab-semantic" class="mode-tab active" data-mode="semantic">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            Semantic AI Search (Qdrant Vectors)
+          </button>
+          <button id="tab-keyword" class="mode-tab" data-mode="keyword">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Keyword Search (SQLite LIKE)
+          </button>
+        </div>
+
+        <!-- Search Bar Input Row -->
+        <form id="search-form" class="search-bar-row">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Enter a natural-language query e.g. 'Affordable headphones for travelling'..."
+              autocomplete="off"
+            >
+            <button type="button" id="btn-clear-search" class="btn-clear hidden" title="Clear search">✕</button>
+          </div>
+
+          <div class="category-select-wrapper">
+            <select id="category-filter">
+              <option value="All">All Categories</option>
+            </select>
+          </div>
+
+          <button type="submit" id="btn-submit-search" class="btn btn-search">
+            Search
+          </button>
+        </form>
+
+        <!-- Suggested Semantic Queries Chips -->
+        <div class="sample-queries" id="sample-queries-container">
+          <span class="sample-label">Try Example Queries:</span>
+          <button class="chip" data-query="Affordable headphones for travelling.">🎧 Affordable headphones for travelling</button>
+          <button class="chip" data-query="Books suitable for learning programming.">📚 Books suitable for learning programming</button>
+          <button class="chip" data-query="Comfortable shoes for running.">👟 Comfortable shoes for running</button>
+          <button class="chip" data-query="Lightweight laptop for university students.">💻 Lightweight laptop for students</button>
+          <button class="chip" data-query="Healthy cooking kitchen appliances.">🍳 Healthy cooking kitchen appliances</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Architecture & Diagnostics Drawer (Collapsible) -->
+    <section id="system-info-drawer" class="system-drawer hidden">
+      <div class="drawer-card">
+        <div class="drawer-header">
+          <h3>Dual-Database Architecture & Status</h3>
+          <button id="btn-close-drawer" class="btn-icon">✕</button>
+        </div>
+        <div class="drawer-grid">
+          <div class="info-box">
+            <h4>Primary Relational DB</h4>
+            <div class="info-row"><span>Engine:</span> <strong>SQLite 3</strong></div>
+            <div class="info-row"><span>File:</span> <code>ecommerce.db</code></div>
+            <div class="info-row"><span>Role:</span> <em>Source of Truth (ACID, CRUD)</em></div>
+            <div class="info-row"><span>Tables:</span> <code>Products, Categories, Orders, Order_Items</code></div>
+          </div>
+          <div class="info-box">
+            <h4>Vector Database</h4>
+            <div class="info-row"><span>Engine:</span> <strong>Qdrant (Local Docker)</strong></div>
+            <div class="info-row"><span>Collection:</span> <code id="info-qdrant-col">product_embeddings</code></div>
+            <div class="info-row"><span>Vector Dimension:</span> <strong>384d (all-MiniLM-L6-v2)</strong></div>
+            <div class="info-row"><span>Distance Metric:</span> <strong>Cosine Similarity</strong></div>
+            <div class="info-row"><span>Vectors Indexed:</span> <strong id="info-vector-count">--</strong></div>
+          </div>
+        </div>
+        <div class="drawer-footer">
+          <button id="btn-reseed" class="btn btn-outline-warning">
+            🔄 Re-Seed Sample Data & Re-Index Vectors
+          </button>
+          <span id="reseed-feedback" class="reseed-feedback"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Status Bar -->
+    <section class="results-header">
+      <div class="results-title-group">
+        <h2 id="results-heading">All Products</h2>
+        <span id="results-count" class="badge-count">Loading...</span>
+      </div>
+      <div id="active-filter-tag" class="active-tag hidden">
+        <span>Filtered: <strong id="active-tag-text"></strong></span>
+        <button id="btn-reset-filters" class="btn-link">Reset</button>
+      </div>
+    </section>
+
+    <!-- Product Grid -->
+    <section id="products-grid" class="products-grid">
+      <!-- Product cards injected by JS -->
+    </section>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">🔍</div>
+      <h3>No Products Found</h3>
+      <p>Try refining your search query or removing the category filter.</p>
+      <button id="btn-empty-reset" class="btn btn-primary">Show All Products</button>
+    </div>
+
+  </main>
+
+  <!-- Add / Edit Product Modal -->
+  <div id="product-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-title">Add New Product</h3>
+        <button id="btn-close-modal" class="btn-icon">✕</button>
+      </div>
+      <form id="product-form" class="modal-body">
+        <input type="hidden" id="form-product-id">
+
+        <div class="form-group">
+          <label for="form-name">Product Name *</label>
+          <input type="text" id="form-name" required placeholder="e.g. Ergonomic Mechanical Keyboard">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-category">Category *</label>
+            <select id="form-category" required>
+              <!-- Injected by JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-price">Price ($) *</label>
+            <input type="number" id="form-price" step="0.01" min="0" required placeholder="49.99">
+          </div>
+          <div class="form-group">
+            <label for="form-stock">Stock Quantity *</label>
+            <input type="number" id="form-stock" min="0" required placeholder="50">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="form-description">Description (Used for Semantic Vector Embedding) *</label>
+          <textarea id="form-description" rows="3" required placeholder="Detailed description of features, materials, and usage..."></textarea>
+          <small class="form-hint">This description will be encoded into a 384-dimensional dense vector by sentence-transformers and indexed in Qdrant.</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="btn-save-product" class="btn btn-primary">Save Product & Sync Vector</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
